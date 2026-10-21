@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Game Idea Checker</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c0f0c;
+      --card: #151b15;
+      --inset: #101610;
+      --ink: #f3f6ef;
+      --muted: #c3cfc0;
+      --line: #314033;
+      --lime: #d6ff4a;
+      --lime-ink: #142000;
+      --amber: #ffcc66;
+      --red: #ff5c6a;
+      --red-text: #ff8b96;
+    }
+
+    * { box-sizing: border-box; }
+
+    [hidden] { display: none !important; }
+
+    html { height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      border-top: 4px solid var(--lime);
+      background:
+        radial-gradient(900px 420px at 0% -10%, rgba(214, 255, 74, 0.08), transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
+      width: min(100% - 2rem, 36rem);
+      margin: 0 auto;
+      padding: 1.4rem 0 2.75rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.85rem, 8vw, 2.45rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+
+    .subtitle {
+      margin: 0.45rem 0 0;
+      max-width: 22rem;
+      color: var(--muted);
+    }
+
+    h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.15rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .field-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .num {
+      display: grid;
+      place-items: center;
+      width: 1.55rem;
+      height: 1.55rem;
+      flex: none;
+      border-radius: 999px;
+      background: var(--lime);
+      color: var(--lime-ink);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .field-label {
+      font-weight: 750;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      min-height: 3rem;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      background: var(--inset);
+      color: inherit;
+      font: inherit;
+    }
+
+    input[type="text"]:focus-visible {
+      outline: 2px solid var(--lime);
+      outline-offset: 2px;
+      border-color: var(--lime);
+    }
+
+    ::placeholder { color: #93a090; opacity: 1; }
+
+    .warn {
+      margin: 0.4rem 0 0;
+      color: var(--amber);
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      column-gap: 0.65rem;
+      align-items: center;
+      margin-top: 0.55rem;
+      padding: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 0.8rem;
+      background: var(--inset);
+      cursor: pointer;
+    }
+
+    .check input {
+      width: 1.35rem;
+      height: 1.35rem;
+      margin: 0;
+      accent-color: var(--lime);
+    }
+
+    .yn {
+      min-width: 2.1rem;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .yn.is-yes { color: var(--lime); }
+
+    .check-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+
+    .check-title { font-weight: 750; }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .score {
+      padding: 0.95rem;
+      border: 1px solid var(--line);
+      border-radius: 0.9rem;
+      background: var(--card);
+    }
+
+    .score-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .score-kicker {
+      margin: 0;
+      font-weight: 750;
+    }
+
+    .score-figure {
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: 1.8rem;
+      letter-spacing: -0.04em;
+    }
+
+    .score-denom {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .meter {
+      height: 1rem;
+      margin-top: 0.7rem;
+      overflow: hidden;
+      border: 2px solid #243024;
+      border-radius: 999px;
+      background: #243024;
+    }
+
+    .tone-low .meter { border-color: var(--red); background: #2a181b; }
+    .tone-mid .meter { border-color: #f0b429; background: #2a2414; }
+    .tone-high .meter { border-color: var(--lime); background: #1d2810; }
+
+    .meter-fill {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .tone-low .meter-fill { background: var(--red); }
+    .tone-mid .meter-fill { background: #f0b429; }
+    .tone-high .meter-fill { background: var(--lime); }
+
+    .tone-low .score-value { color: var(--red-text); }
+    .tone-mid .score-value { color: var(--amber); }
+    .tone-high .score-value { color: var(--lime); }
+
+    .advice {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin: 0.85rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .advice li {
+      margin: 0;
+      padding-left: 0.7rem;
+      border-left: 3px solid var(--line);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .tone-low .advice li { border-left-color: var(--red); }
+    .tone-mid .advice li { border-left-color: #f0b429; }
+    .tone-high .advice li { border-left-color: var(--lime); }
+
+    .advice-rule {
+      color: var(--ink);
+      font-weight: 750;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--lime);
+      outline-offset: 2px;
+    }
+
+    #save-idea {
+      min-height: 3rem;
+      border: 0;
+      border-radius: 0.8rem;
+      background: var(--lime);
+      color: var(--lime-ink);
+      font-weight: 800;
+    }
+
+    .status {
+      margin: -0.4rem 0 0;
+      color: var(--lime);
+      font-weight: 700;
+    }
+
+    .saved-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .saved {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding: 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 0.9rem;
+      background: var(--card);
+    }
+
+    .saved-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .saved h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      overflow-wrap: anywhere;
+    }
+
+    .pill {
+      flex: none;
+      padding: 0.2rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tone-low .pill { color: var(--red-text); border-color: var(--red); }
+    .tone-mid .pill { color: var(--amber); border-color: #f0b429; }
+    .tone-high .pill { color: var(--lime); border-color: var(--lime); }
+
+    .detail {
+      margin: 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .detail-label {
+      color: var(--ink);
+      font-weight: 750;
+    }
+
+    .empty {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .delete {
+      min-height: 2.75rem;
+      margin-top: 0.25rem;
+      border: 1px solid #8a3d44;
+      border-radius: 0.7rem;
+      background: transparent;
+      color: #ffc1c6;
+      font-weight: 700;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .meter-fill { transition: width 160ms ease; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Game Idea Checker</h1>
+      <p class="subtitle">Four rules the top Roblox games share.</p>
+    </header>
+
+    <form id="idea-form" autocomplete="off">
+      <div class="field">
+        <div class="field-head">
+          <span class="num" aria-hidden="true">1</span>
+          <label class="field-label" for="game-name">Game name</label>
+        </div>
+        <input id="game-name" type="text" autocomplete="off" placeholder="Chop A Forest">
+        <p id="name-warn" class="warn" hidden>Name may be too long.</p>
+        <label class="check">
+          <input id="check-name" type="checkbox">
+          <span class="yn" id="yn-name" aria-hidden="true">No</span>
+          <span class="check-copy">
+            <span class="check-title">Simple name</span>
+            <span class="hint">Is it 2 to 4 plain words that say what you do, like Chop A Forest?</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="num" aria-hidden="true">2</span>
+          <label class="field-label" for="game-action">The one action</label>
+        </div>
+        <input id="game-action" type="text" autocomplete="off" placeholder="chop trees">
+        <label class="check">
+          <input id="check-action" type="checkbox">
+          <span class="yn" id="yn-action" aria-hidden="true">No</span>
+          <span class="check-copy">
+            <span class="check-title">One action</span>
+            <span class="hint">Could a new player get it in 5 seconds?</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="num" aria-hidden="true">3</span>
+          <label class="field-label" for="game-thumbnail">Thumbnail idea</label>
+        </div>
+        <input id="game-thumbnail" type="text" autocomplete="off" placeholder="One sentence">
+        <label class="check">
+          <input id="check-thumbnail" type="checkbox">
+          <span class="yn" id="yn-thumbnail" aria-hidden="true">No</span>
+          <span class="check-copy">
+            <span class="check-title">Bright thumbnail</span>
+            <span class="hint">Could you picture it as one bold, clear image?</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="num" aria-hidden="true">4</span>
+          <label class="field-label" for="game-love">Why players would love it</label>
+        </div>
+        <input id="game-love" type="text" autocomplete="off" placeholder="One sentence">
+        <label class="check">
+          <input id="check-love" type="checkbox">
+          <span class="yn" id="yn-love" aria-hidden="true">No</span>
+          <span class="check-copy">
+            <span class="check-title">Players love it</span>
+            <span class="hint">Would a kid want to tell a friend about it?</span>
+          </span>
+        </label>
+      </div>
+
+      <section class="score tone-low" id="score-card" aria-live="polite" aria-label="Score">
+        <div class="score-row">
+          <p class="score-kicker">Score</p>
+          <p class="score-figure"><span id="score-value" class="score-value">0</span><span class="score-denom"> / 4</span></p>
+        </div>
+        <div class="meter" aria-hidden="true"><span class="meter-fill" id="meter-fill"></span></div>
+        <ul id="advice" class="advice"></ul>
+      </section>
+
+      <button id="save-idea" type="submit">Save idea</button>
+      <p id="status" class="status" role="status" hidden></p>
+    </form>
+
+    <section aria-labelledby="saved-heading">
+      <h2 id="saved-heading">Saved ideas</h2>
+      <ul id="saved-list" class="saved-list"></ul>
+    </section>
+  </main>
+
+  <noscript>This page needs JavaScript to score and save ideas.</noscript>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var STORAGE_KEY = "game-idea-checker";
+      var NAME_WARNING = "Name may be too long.";
+      var RULES = [
+        {
+          checkId: "check-name",
+          ynId: "yn-name",
+          name: "Simple name",
+          advice: "Shorten it to 2 to 4 plain words that say what you do."
+        },
+        {
+          checkId: "check-action",
+          ynId: "yn-action",
+          name: "One action",
+          advice: "Make it something a new player gets in 5 seconds."
+        },
+        {
+          checkId: "check-thumbnail",
+          ynId: "yn-thumbnail",
+          name: "Bright thumbnail",
+          advice: "Picture it as one bold, clear image."
+        },
+        {
+          checkId: "check-love",
+          ynId: "yn-love",
+          name: "Players love it",
+          advice: "Give a kid a reason to tell a friend."
+        }
+      ];
+
+      var form = document.getElementById("idea-form");
+      var nameInput = document.getElementById("game-name");
+      var actionInput = document.getElementById("game-action");
+      var thumbnailInput = document.getElementById("game-thumbnail");
+      var loveInput = document.getElementById("game-love");
+      var nameWarn = document.getElementById("name-warn");
+      var scoreCard = document.getElementById("score-card");
+      var scoreValue = document.getElementById("score-value");
+      var meterFill = document.getElementById("meter-fill");
+      var adviceList = document.getElementById("advice");
+      var statusEl = document.getElementById("status");
+      var savedList = document.getElementById("saved-list");
+      var ideas = [];
+
+      function nameIsLong(name) {
+        var trimmed = name.trim();
+        if (!trimmed) return false;
+        return trimmed.split(/\s+/).length > 4;
+      }
+
+      function toneClass(score) {
+        if (score >= 4) return "tone-high";
+        if (score >= 2) return "tone-mid";
+        return "tone-low";
+      }
+
+      function readChecks() {
+        return RULES.map(function (rule) {
+          return document.getElementById(rule.checkId).checked;
+        });
+      }
+
+      function scoreOf(checks) {
+        return checks.filter(Boolean).length;
+      }
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+        statusEl.hidden = message.length === 0;
+      }
+
+      function renderLive() {
+        var checks = readChecks();
+        var score = scoreOf(checks);
+        scoreCard.classList.remove("tone-low", "tone-mid", "tone-high");
+        scoreCard.classList.add(toneClass(score));
+        scoreValue.textContent = String(score);
+        meterFill.style.width = (score * 25) + "%";
+        nameWarn.hidden = !nameIsLong(nameInput.value);
+
+        RULES.forEach(function (rule, index) {
+          var yesNo = document.getElementById(rule.ynId);
+          var checked = checks[index];
+          yesNo.textContent = checked ? "Yes" : "No";
+          yesNo.classList.toggle("is-yes", checked);
+        });
+
+        adviceList.replaceChildren();
+        if (score === 4) {
+          var done = document.createElement("li");
+          done.textContent = "This idea hits all four rules.";
+          adviceList.append(done);
+          return;
+        }
+
+        RULES.forEach(function (rule, index) {
+          if (checks[index]) return;
+          var item = document.createElement("li");
+          var label = document.createElement("span");
+          label.className = "advice-rule";
+          label.textContent = rule.name + ": ";
+          item.append(label, document.createTextNode(rule.advice));
+          adviceList.append(item);
+        });
+      }
+
+      function seedIdeas() {
+        return [
+          {
+            id: "seed-chop",
+            name: "Chop A Forest",
+            action: "chop trees",
+            thumbnail: "A bright axe clearing a sunny forest.",
+            love: "Friends race to see who finishes first.",
+            checks: [true, true, true, true],
+            score: 4,
+            savedAt: 2
+          },
+          {
+            id: "seed-ponce",
+            name: "The Great Big Adventure Of Ponce De Leon And Friends",
+            action: "find the fountain",
+            thumbnail: "A crowded map with a ship, a jungle, and a crown.",
+            love: "You hunt for the fountain of youth.",
+            checks: [false, true, false, true],
+            score: 2,
+            savedAt: 1
+          }
+        ];
+      }
+
+      function normalize(idea) {
+        var checks = [0, 1, 2, 3].map(function (index) {
+          return Boolean(idea.checks[index]);
+        });
+        return {
+          id: String(idea.id),
+          name: String(idea.name || ""),
+          action: String(idea.action || ""),
+          thumbnail: String(idea.thumbnail || ""),
+          love: String(idea.love || ""),
+          checks: checks,
+          score: scoreOf(checks),
+          savedAt: Number(idea.savedAt) || 0
+        };
+      }
+
+      function isIdea(idea) {
+        return Boolean(idea) && typeof idea === "object" && typeof idea.name === "string" && Array.isArray(idea.checks);
+      }
+
+      function tryPersist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas));
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function loadIdeas() {
+        var raw = null;
+        try {
+          raw = localStorage.getItem(STORAGE_KEY);
+        } catch (err) {
+          ideas = seedIdeas();
+          return;
+        }
+        if (raw == null) {
+          ideas = seedIdeas();
+          tryPersist();
+          return;
+        }
+        try {
+          var parsed = JSON.parse(raw);
+          ideas = Array.isArray(parsed) ? parsed.filter(isIdea).map(normalize) : [];
+        } catch (err) {
+          ideas = [];
+        }
+      }
+
+      function addDetail(parent, label, value) {
+        var trimmed = value.trim();
+        if (!trimmed) return;
+        var line = document.createElement("p");
+        line.className = "detail";
+        var name = document.createElement("span");
+        name.className = "detail-label";
+        name.textContent = label;
+        line.append(name, document.createTextNode(" " + trimmed));
+        parent.append(line);
+      }
+
+      function renderList() {
+        var sorted = ideas.slice().sort(function (a, b) {
+          return b.score - a.score || b.savedAt - a.savedAt;
+        });
+        savedList.replaceChildren();
+        if (sorted.length === 0) {
+          var empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = "No saved ideas yet.";
+          savedList.append(empty);
+          return;
+        }
+        sorted.forEach(function (idea) {
+          var item = document.createElement("li");
+          item.className = "saved " + toneClass(idea.score);
+
+          var top = document.createElement("div");
+          top.className = "saved-top";
+          var title = document.createElement("h3");
+          title.textContent = idea.name.trim() || "Untitled idea";
+          var pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = idea.score + " / 4";
+          top.append(title, pill);
+          item.append(top);
+
+          if (nameIsLong(idea.name)) {
+            var warning = document.createElement("p");
+            warning.className = "warn";
+            warning.textContent = NAME_WARNING;
+            item.append(warning);
+          }
+
+          addDetail(item, "Action", idea.action);
+          addDetail(item, "Thumbnail", idea.thumbnail);
+          addDetail(item, "Love it", idea.love);
+
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "delete";
+          button.dataset.id = idea.id;
+          button.textContent = "Delete";
+          button.setAttribute("aria-label", "Delete " + title.textContent);
+          item.append(button);
+          savedList.append(item);
+        });
+      }
+
+      function createId() {
+        return "idea-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+      }
+
+      function saveIdea() {
+        var checks = readChecks();
+        ideas.push({
+          id: createId(),
+          name: nameInput.value.trim(),
+          action: actionInput.value.trim(),
+          thumbnail: thumbnailInput.value.trim(),
+          love: loveInput.value.trim(),
+          checks: checks,
+          score: scoreOf(checks),
+          savedAt: Date.now()
+        });
+        var stored = tryPersist();
+        renderList();
+        if (!stored) {
+          setStatus("Could not save in this browser.");
+          return;
+        }
+        form.reset();
+        renderLive();
+        setStatus("Saved.");
+      }
+
+      form.addEventListener("input", function () {
+        setStatus("");
+        renderLive();
+      });
+
+      form.addEventListener("change", function () {
+        setStatus("");
+        renderLive();
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        saveIdea();
+      });
+
+      savedList.addEventListener("click", function (event) {
+        var button = event.target.closest("button[data-id]");
+        if (!button) return;
+        var id = button.dataset.id;
+        ideas = ideas.filter(function (idea) {
+          return idea.id !== id;
+        });
+        var stored = tryPersist();
+        renderList();
+        setStatus(stored ? "" : "Could not save in this browser.");
+      });
+
+      loadIdeas();
+      renderLive();
+      renderList();
+    })();
+  </script>
+</body>
+</html>
